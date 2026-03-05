@@ -1,13 +1,13 @@
-# AI Bot Auto-Build Docker Image
+# AI Agents Auto-Build Docker Image
 
-Automated daily builds of an Arch Linux Docker image with popular AI coding assistants pre-installed.
+Automated daily builds of an Ubuntu-based Docker image with popular AI coding assistants pre-installed.
 
 ## Included Tools
 
-- **openai-codex-bin** - OpenAI Codex CLI
-- **gemini-cli-git** - Google Gemini CLI (built from source)
-- **claude-code** - Anthropic Claude Code CLI
-- **opencode-bin** - OpenCode AI assistant
+- **@openai/codex** - OpenAI Codex CLI coding agent
+- **@anthropic-ai/claude-code** - Anthropic Claude Code CLI
+- **@google/gemini-cli** - Google Gemini CLI
+- **opencode** - OpenCode AI assistant
 
 ## Usage
 
@@ -39,14 +39,14 @@ docker run -it ghcr.io/chmouel/agents-image:latest claude --help
 docker run -it ghcr.io/chmouel/agents-image:latest opencode --help
 ```
 
-### Install additional AUR packages
+### Install additional npm packages
 
-The image includes `yay` AUR helper, so you can install additional packages:
+The image includes Node.js, so you can install additional npm packages globally:
 
 ```bash
 docker run -it ghcr.io/chmouel/agents-image:latest bash
 # Inside container:
-yay -S <package-name>
+npm install -g <package-name>
 ```
 
 ## Build Locally
@@ -79,7 +79,14 @@ This image is automatically built and pushed to GitHub Container Registry:
 
 ## Image Size Optimization
 
-The Dockerfile uses multi-stage builds to minimize the final image size while keeping essential tools like `yay` for package management.
+The Dockerfile uses multi-stage builds to minimize the final image size while keeping essential tools and Node.js runtime for package management.
+
+## Base Image
+
+Built on **Ubuntu 24.04 LTS** for:
+- Official multi-architecture support (AMD64 + ARM64)
+- Long-term stability and security updates
+- Reliable Node.js packages via NodeSource
 
 ## License
 
