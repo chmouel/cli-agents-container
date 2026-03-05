@@ -36,9 +36,14 @@ RUN NODE_VERSION="20.19.1" && \
 # Install npm-based AI tools globally
 RUN npm install -g \
     @openai/codex \
-    @anthropic-ai/claude-code \
     @google/gemini-cli && \
     npm cache clean --force
+
+# Install Claude Code via official install script
+RUN curl -fsSL https://claude.ai/install.sh | bash && \
+    cp /root/.local/bin/claude /usr/local/bin/claude && \
+    chmod +x /usr/local/bin/claude && \
+    claude --version
 
 # Install OpenCode from GitHub releases (platform-specific binary)
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
