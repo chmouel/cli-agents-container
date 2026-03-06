@@ -53,4 +53,5 @@ The script triggers `.github/workflows/build-docker.yml`, waits for the run to a
 ## Version Pinning
 
 - Node.js version is hardcoded in the Dockerfile (`NODE_VERSION="20.19.1"`) in **both** the builder and runtime stages — update both when bumping.
-- OpenCode version is controlled by the `OPENCODE_ARCH` build arg (`OPENCODE_VERSION=1.2.17` default).
+- OpenCode version is resolved dynamically at build time via the GitHub API (`/repos/anomalyco/opencode/releases/latest`) — no version to maintain.
+- All tool installs (npm, claude install.sh, opencode) are cache-busted on every CI run via `ARG CACHEBUST` (set to `github.run_id` in the workflow), while the Node.js download layer remains cached.

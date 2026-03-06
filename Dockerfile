@@ -7,7 +7,6 @@ FROM ubuntu:24.04 AS builder
 
 # Build arguments for multi-platform support
 ARG TARGETARCH
-ARG OPENCODE_VERSION=1.2.17
 ARG NODE_MAJOR=20
 
 # Environment variables
@@ -33,6 +32,8 @@ RUN NODE_VERSION="20.19.1" && \
     tar -xJ -C /usr/local --strip-components=1 && \
     node --version && npm --version
 
+ARG CACHEBUST
+
 # Install npm-based AI tools globally
 RUN npm install -g \
     @openai/codex \
@@ -45,7 +46,7 @@ RUN curl -fsSL https://claude.ai/install.sh | bash && \
     chmod +x /usr/local/bin/claude && \
     claude --version
 
-# Install OpenCode from GitHub releases (platform-specific binary)
+# Install OpenCode from GitHub releases (platform-specific binary, latest version)
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
         OPENCODE_ARCH="x64"; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
@@ -53,6 +54,9 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     else \
         echo "Unsupported architecture: $TARGETARCH" && exit 1; \
     fi && \
+    OPENCODE_VERSION=$(curl -fsSL "https://api.github.com/repos/anomalyco/opencode/releases/latest" | \
+        grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/') && \
+    echo "Installing opencode v${OPENCODE_VERSION}" && \
     curl -fsSL "https://github.com/anomalyco/opencode/releases/download/v${OPENCODE_VERSION}/opencode-linux-${OPENCODE_ARCH}.tar.gz" | \
     tar -xz -C /usr/local/bin && \
     chmod +x /usr/local/bin/opencode
