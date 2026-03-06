@@ -31,6 +31,7 @@ RUN apt-get update && \
         fd-find \
         make \
         jq \
+        unzip \
         shellcheck && \
     ln -sf /usr/bin/fdfind /usr/local/bin/fd && \
     rm -rf /var/lib/apt/lists/*
@@ -55,29 +56,31 @@ RUN NODE_VERSION="20.19.1" && \
 ARG CACHEBUST
 
 # Install ast-grep (sg) from GitHub releases
-RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+RUN ASG_ARCH=$([ "$TARGETARCH" = "amd64" ] && echo "x86_64" || echo "aarch64") && \
     ASG_VERSION=$(curl -fsSL "https://api.github.com/repos/ast-grep/ast-grep/releases/latest" | \
-        grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/') && \
-    echo "Installing ast-grep v${ASG_VERSION}" && \
-    curl -fsSL "https://github.com/ast-grep/ast-grep/releases/download/v${ASG_VERSION}/ast-grep_linux_${TARGETARCH_VAL}.tar.gz" | \
-    tar -xz -C /usr/local/bin && \
-    chmod +x /usr/local/bin/sg
+        jq -r '.tag_name') && \
+    echo "Installing ast-grep ${ASG_VERSION}" && \
+    curl -fsSL "https://github.com/ast-grep/ast-grep/releases/download/${ASG_VERSION}/app-${ASG_ARCH}-unknown-linux-gnu.zip" \
+        -o /tmp/ast-grep.zip && \
+    unzip -o /tmp/ast-grep.zip sg ast-grep -d /usr/local/bin && \
+    rm /tmp/ast-grep.zip && \
+    chmod +x /usr/local/bin/sg /usr/local/bin/ast-grep
 
 # Install yq from GitHub releases
 RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
-    YQ_VERSION=$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | \
-        grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/') && \
-    echo "Installing yq v${YQ_VERSION}" && \
-    curl -fsSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH_VAL}" \
+    YQ_TAG=$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | \
+        jq -r '.tag_name') && \
+    echo "Installing yq ${YQ_TAG}" && \
+    curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_TAG}/yq_linux_${TARGETARCH_VAL}" \
         -o /usr/local/bin/yq && \
     chmod +x /usr/local/bin/yq
 
-# Install glab (GitLab CLI) from GitHub releases
-RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "x86_64" || echo "arm64") && \
-    GLAB_VERSION=$(curl -fsSL "https://api.github.com/repos/gitlab-org/cli/releases/latest" | \
-        grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/') && \
+# Install glab (GitLab CLI) from GitLab releases
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    GLAB_VERSION=$(curl -fsSL "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/releases?per_page=1" | \
+        jq -r '.[0].tag_name | ltrimstr("v")') && \
     echo "Installing glab v${GLAB_VERSION}" && \
-    curl -fsSL "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_Linux_${TARGETARCH_VAL}.tar.gz" | \
+    curl -fsSL "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/${GLAB_VERSION}/glab_${GLAB_VERSION}_linux_${TARGETARCH_VAL}.tar.gz" | \
     tar -xz -C /usr/local/bin --strip-components=1 bin/glab && \
     chmod +x /usr/local/bin/glab
 
@@ -101,10 +104,10 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     else \
         echo "Unsupported architecture: $TARGETARCH" && exit 1; \
     fi && \
-    OPENCODE_VERSION=$(curl -fsSL "https://api.github.com/repos/anomalyco/opencode/releases/latest" | \
-        grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/') && \
-    echo "Installing opencode v${OPENCODE_VERSION}" && \
-    curl -fsSL "https://github.com/anomalyco/opencode/releases/download/v${OPENCODE_VERSION}/opencode-linux-${OPENCODE_ARCH}.tar.gz" | \
+    OPENCODE_TAG=$(curl -fsSL "https://api.github.com/repos/anomalyco/opencode/releases/latest" | \
+        jq -r '.tag_name') && \
+    echo "Installing opencode ${OPENCODE_TAG}" && \
+    curl -fsSL "https://github.com/anomalyco/opencode/releases/download/${OPENCODE_TAG}/opencode-linux-${OPENCODE_ARCH}.tar.gz" | \
     tar -xz -C /usr/local/bin && \
     chmod +x /usr/local/bin/opencode
 
