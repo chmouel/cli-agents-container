@@ -94,13 +94,15 @@ RUN NODE_VERSION="20.19.1" && \
 COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Create non-root user for running AI tools
-RUN useradd -m -s /bin/bash aiuser && \
-    chown -R aiuser:aiuser /home/aiuser
+# Remove ubuntu user if it exists from base image, then create aiuser with UID/GID 1000
+RUN (userdel -r ubuntu 2>/dev/null || true) && \
+    groupadd -g 1000 aiuser && \
+    useradd -m -u 1000 -g 1000 -d /user -s /bin/bash aiuser && \
+    chown -R aiuser:aiuser /user
 
 # Set default user
 USER aiuser
-WORKDIR /home/aiuser
+WORKDIR /user
 
 # Add labels for GitHub Container Registry
 LABEL org.opencontainers.image.source="https://github.com/chmouel/agents-image"

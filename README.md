@@ -88,6 +88,20 @@ Built on **Ubuntu 24.04 LTS** for:
 - Long-term stability and security updates
 - Reliable Node.js packages via NodeSource
 
+## User Configuration
+
+The container runs as a non-root user for better security:
+
+- **Username**: `aiuser`
+- **UID/GID**: 1000:1000
+- **Home directory**: `/user`
+### Volume Mounting Example
+
+```bash
+# Mount your project directory with correct permissions
+docker run -it -v $(pwd):/workspace ghcr.io/chmouel/agents-image:latest
+```
+
 ## License
 
 MIT
