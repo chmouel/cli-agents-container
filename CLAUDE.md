@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Purpose
 
-Automated daily-built Ubuntu 24.04 Docker image with four AI coding assistants pre-installed:
+Automated daily-built Ubuntu rolling Docker image with four AI coding assistants pre-installed:
 - `@openai/codex` and `@google/gemini-cli` — installed via npm globally
 - `claude` — installed via official `https://claude.ai/install.sh` script
 - `opencode` — installed from GitHub release binary (anomalyco/opencode)
@@ -15,7 +15,7 @@ Published to `ghcr.io/chmouel/agents-image` via GitHub Actions.
 
 Multi-stage Dockerfile (`builder` + runtime):
 - **builder**: installs Node.js 20.19.1 from official binary tarball (not NodeSource), runs all npm installs and binary downloads
-- **runtime**: fresh Ubuntu 24.04, copies `/usr/local/lib/node_modules` and `/usr/local/bin` from builder, runs as non-root `aiuser`
+- **runtime**: fresh Ubuntu rolling, copies `/usr/local/lib/node_modules` and `/usr/local/bin` from builder, runs as non-root `aiuser`
 
 Both stages install Node.js by downloading the official tarball directly to handle `linux/amd64` and `linux/arm64` with the `TARGETARCH` build arg.
 

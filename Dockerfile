@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
-# Multi-stage Dockerfile for AI Tools on Ubuntu
+# Multi-stage Dockerfile for AI Tools on Ubuntu (rolling)
 # Packages: @openai/codex, @anthropic-ai/claude-code, @google/gemini-cli, opencode
 # Platform: linux/amd64, linux/arm64
 
-FROM ubuntu:24.04 AS builder
+FROM ubuntu:rolling AS builder
 
 # Build arguments for multi-platform support
 ARG TARGETARCH
@@ -13,7 +13,7 @@ ARG NODE_MAJOR=20
 ENV DEBIAN_FRONTEND=noninteractive \
     NODE_ENV=production
 
-# Install Node.js and build dependencies  
+# Install Node.js and build dependencies
 RUN apt-get update && \
     apt-get install -y \
         ca-certificates \
@@ -22,6 +22,26 @@ RUN apt-get update && \
         git \
         wget \
         xz-utils && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install developer utility tools
+RUN apt-get update && \
+    apt-get install -y \
+        ripgrep \
+        fd-find \
+        make \
+        jq \
+        shellcheck && \
+    ln -sf /usr/bin/fdfind /usr/local/bin/fd && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install GitHub CLI via official apt repo
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+        | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+        | tee /etc/apt/sources.list.d/github-cli.list && \
+    apt-get update && \
+    apt-get install -y gh && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Node.js from official binary (supports both AMD64 and ARM64)
@@ -33,6 +53,33 @@ RUN NODE_VERSION="20.19.1" && \
     node --version && npm --version
 
 ARG CACHEBUST
+
+# Install ast-grep (sg) from GitHub releases
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    ASG_VERSION=$(curl -fsSL "https://api.github.com/repos/ast-grep/ast-grep/releases/latest" | \
+        grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/') && \
+    echo "Installing ast-grep v${ASG_VERSION}" && \
+    curl -fsSL "https://github.com/ast-grep/ast-grep/releases/download/v${ASG_VERSION}/ast-grep_linux_${TARGETARCH_VAL}.tar.gz" | \
+    tar -xz -C /usr/local/bin && \
+    chmod +x /usr/local/bin/sg
+
+# Install yq from GitHub releases
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    YQ_VERSION=$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | \
+        grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/') && \
+    echo "Installing yq v${YQ_VERSION}" && \
+    curl -fsSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH_VAL}" \
+        -o /usr/local/bin/yq && \
+    chmod +x /usr/local/bin/yq
+
+# Install glab (GitLab CLI) from GitHub releases
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "x86_64" || echo "arm64") && \
+    GLAB_VERSION=$(curl -fsSL "https://api.github.com/repos/gitlab-org/cli/releases/latest" | \
+        grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/') && \
+    echo "Installing glab v${GLAB_VERSION}" && \
+    curl -fsSL "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_Linux_${TARGETARCH_VAL}.tar.gz" | \
+    tar -xz -C /usr/local/bin --strip-components=1 bin/glab && \
+    chmod +x /usr/local/bin/glab
 
 # Install npm-based AI tools globally
 RUN npm install -g \
@@ -65,10 +112,19 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
 RUN codex --version && \
     claude --version && \
     gemini --version && \
-    opencode --version
+    opencode --version && \
+    sg --version && \
+    yq --version && \
+    gh --version && \
+    glab --version && \
+    rg --version && \
+    fd --version && \
+    make --version && \
+    jq --version && \
+    shellcheck --version
 
 # Final runtime stage
-FROM ubuntu:24.04
+FROM ubuntu:rolling
 
 # Build arguments
 ARG NODE_MAJOR=20
@@ -85,6 +141,26 @@ RUN apt-get update && \
         gnupg \
         git \
         xz-utils && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install developer utility tools
+RUN apt-get update && \
+    apt-get install -y \
+        ripgrep \
+        fd-find \
+        make \
+        jq \
+        shellcheck && \
+    ln -sf /usr/bin/fdfind /usr/local/bin/fd && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install GitHub CLI via official apt repo
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+        | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+        | tee /etc/apt/sources.list.d/github-cli.list && \
+    apt-get update && \
+    apt-get install -y gh && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Node.js from official binary (supports both AMD64 and ARM64)
@@ -110,7 +186,7 @@ WORKDIR /user
 
 # Add labels for GitHub Container Registry
 LABEL org.opencontainers.image.source="https://github.com/chmouel/agents-image"
-LABEL org.opencontainers.image.description="Ubuntu-based multi-arch image with AI coding assistants: Codex, Claude Code, Gemini CLI, OpenCode"
+LABEL org.opencontainers.image.description="Ubuntu-based multi-arch image with AI coding assistants (Codex, Claude Code, Gemini CLI, OpenCode) and other developer tools"
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Default command
