@@ -134,7 +134,8 @@ ARG NODE_MAJOR=20
 
 # Environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
-    NODE_ENV=production
+    NODE_ENV=production \
+    PATH="/user/.local/bin:${PATH}"
 
 # Install minimal runtime dependencies
 RUN apt-get update && \
