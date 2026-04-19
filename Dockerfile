@@ -102,16 +102,6 @@ RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64"
     tar -xz -C /usr/local/bin stern && \
     chmod +x /usr/local/bin/stern
 
-# Install tkn (Tekton CLI) from GitHub releases
-RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
-    TKN_TAG=$(curl -fsSL "https://api.github.com/repos/tektoncd/cli/releases/latest" | \
-        jq -r '.tag_name') && \
-    TKN_VERSION=${TKN_TAG#v} && \
-    echo "Installing tkn ${TKN_TAG}" && \
-    curl -fsSL "https://github.com/tektoncd/cli/releases/download/${TKN_TAG}/tkn_${TKN_VERSION}_Linux_${TARGETARCH_VAL}.tar.gz" | \
-    tar -xz -C /usr/local/bin tkn && \
-    chmod +x /usr/local/bin/tkn
-
 # Install npm-based AI tools globally
 RUN npm install -g \
     @openai/codex \
@@ -150,7 +140,6 @@ RUN codex --version && \
     glab --version && \
     kubectl version --client && \
     stern --version && \
-    tkn version && \
     rg --version && \
     fd --version && \
     make --version && \
