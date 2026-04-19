@@ -4,10 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Purpose
 
-Automated daily-built Ubuntu rolling Docker image with four AI coding assistants pre-installed:
+Automated daily-built Ubuntu rolling Docker image with four AI coding assistants and Kubernetes/Tekton debugging tools pre-installed:
 - `@openai/codex` and `@google/gemini-cli` — installed via npm globally
 - `claude` — installed via official `https://claude.ai/install.sh` script
 - `opencode` — installed from GitHub release binary (anomalyco/opencode)
+- `kubectl`, `stern`, `tkn` — Kubernetes and Tekton CLI tools for cluster debugging
 
 Published to `ghcr.io/chmouel/agents-image` via GitHub Actions.
 

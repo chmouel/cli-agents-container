@@ -84,6 +84,34 @@ RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64"
     tar -xz -C /usr/local/bin --strip-components=1 bin/glab && \
     chmod +x /usr/local/bin/glab
 
+# Install kubectl from official release
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    KUBECTL_VERSION=$(curl -fsSL "https://dl.k8s.io/release/stable.txt") && \
+    echo "Installing kubectl ${KUBECTL_VERSION}" && \
+    curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH_VAL}/kubectl" \
+        -o /usr/local/bin/kubectl && \
+    chmod +x /usr/local/bin/kubectl
+
+# Install stern (multi-pod log tailing) from GitHub releases
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    STERN_TAG=$(curl -fsSL "https://api.github.com/repos/stern/stern/releases/latest" | \
+        jq -r '.tag_name') && \
+    STERN_VERSION=${STERN_TAG#v} && \
+    echo "Installing stern ${STERN_TAG}" && \
+    curl -fsSL "https://github.com/stern/stern/releases/download/${STERN_TAG}/stern_${STERN_VERSION}_linux_${TARGETARCH_VAL}.tar.gz" | \
+    tar -xz -C /usr/local/bin stern && \
+    chmod +x /usr/local/bin/stern
+
+# Install tkn (Tekton CLI) from GitHub releases
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    TKN_TAG=$(curl -fsSL "https://api.github.com/repos/tektoncd/cli/releases/latest" | \
+        jq -r '.tag_name') && \
+    TKN_VERSION=${TKN_TAG#v} && \
+    echo "Installing tkn ${TKN_TAG}" && \
+    curl -fsSL "https://github.com/tektoncd/cli/releases/download/${TKN_TAG}/tkn_${TKN_VERSION}_Linux_${TARGETARCH_VAL}.tar.gz" | \
+    tar -xz -C /usr/local/bin tkn && \
+    chmod +x /usr/local/bin/tkn
+
 # Install npm-based AI tools globally
 RUN npm install -g \
     @openai/codex \
@@ -120,6 +148,9 @@ RUN codex --version && \
     yq --version && \
     gh --version && \
     glab --version && \
+    kubectl version --client && \
+    stern --version && \
+    tkn version && \
     rg --version && \
     fd --version && \
     make --version && \
