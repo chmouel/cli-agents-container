@@ -21,6 +21,7 @@ RUN apt-get update && \
         gnupg \
         git \
         wget \
+        vim-tiny \
         xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
