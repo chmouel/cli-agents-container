@@ -1,0 +1,221 @@
+# syntax=docker/dockerfile:1
+# Multi-stage Dockerfile for AI Tools on UBI 9 (Red Hat Universal Base Image)
+# Packages: @openai/codex, @anthropic-ai/claude-code, @google/gemini-cli, opencode
+# Platform: linux/amd64, linux/arm64
+
+FROM registry.access.redhat.com/ubi9/ubi AS builder
+
+# Build arguments for multi-platform support
+ARG TARGETARCH
+ARG NODE_MAJOR=20
+
+# Environment variables
+ENV NODE_ENV=production
+
+# Install system packages from UBI 9 base repos
+# --allowerasing: UBI 9 ships curl-minimal which conflicts with curl
+RUN dnf install -y --allowerasing \
+        curl \
+        git \
+        wget \
+        xz \
+        make \
+        jq \
+        unzip && \
+    dnf clean all
+
+# Install GitHub CLI via official RPM repo
+RUN curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo \
+        -o /etc/yum.repos.d/github-cli.repo && \
+    dnf install -y gh --repo gh-cli && \
+    dnf clean all
+
+# Install Node.js from official binary (supports both AMD64 and ARM64)
+ARG TARGETARCH
+RUN NODE_VERSION="20.19.1" && \
+    if [ "$TARGETARCH" = "amd64" ]; then ARCH="x64"; elif [ "$TARGETARCH" = "arm64" ]; then ARCH="arm64"; fi && \
+    curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar -xJ -C /usr/local --strip-components=1 && \
+    node --version && npm --version
+
+ARG CACHEBUST
+
+# Install ripgrep from GitHub releases
+RUN RG_TAG=$(curl -fsSL "https://api.github.com/repos/BurntSushi/ripgrep/releases/latest" | \
+        jq -r '.tag_name') && \
+    if [ "$TARGETARCH" = "amd64" ]; then \
+        RG_TARGET="x86_64-unknown-linux-musl"; \
+    else \
+        RG_TARGET="aarch64-unknown-linux-gnu"; \
+    fi && \
+    echo "Installing ripgrep ${RG_TAG}" && \
+    curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RG_TAG}/ripgrep-${RG_TAG}-${RG_TARGET}.tar.gz" | \
+    tar -xz --strip-components=1 -C /usr/local/bin "ripgrep-${RG_TAG}-${RG_TARGET}/rg" && \
+    chmod +x /usr/local/bin/rg
+
+# Install fd from GitHub releases
+RUN FD_TAG=$(curl -fsSL "https://api.github.com/repos/sharkdp/fd/releases/latest" | \
+        jq -r '.tag_name') && \
+    if [ "$TARGETARCH" = "amd64" ]; then \
+        FD_TARGET="x86_64-unknown-linux-musl"; \
+    else \
+        FD_TARGET="aarch64-unknown-linux-gnu"; \
+    fi && \
+    echo "Installing fd ${FD_TAG}" && \
+    curl -fsSL "https://github.com/sharkdp/fd/releases/download/${FD_TAG}/fd-${FD_TAG}-${FD_TARGET}.tar.gz" | \
+    tar -xz --strip-components=1 -C /usr/local/bin "fd-${FD_TAG}-${FD_TARGET}/fd" && \
+    chmod +x /usr/local/bin/fd
+
+# Install shellcheck from GitHub releases
+RUN SC_TAG=$(curl -fsSL "https://api.github.com/repos/koalaman/shellcheck/releases/latest" | \
+        jq -r '.tag_name') && \
+    SC_ARCH=$([ "$TARGETARCH" = "amd64" ] && echo "x86_64" || echo "aarch64") && \
+    echo "Installing shellcheck ${SC_TAG}" && \
+    curl -fsSL "https://github.com/koalaman/shellcheck/releases/download/${SC_TAG}/shellcheck-${SC_TAG}.linux.${SC_ARCH}.tar.xz" | \
+    tar -xJ --strip-components=1 -C /usr/local/bin "shellcheck-${SC_TAG}/shellcheck" && \
+    chmod +x /usr/local/bin/shellcheck
+
+# Install ast-grep (sg) from GitHub releases
+RUN ASG_ARCH=$([ "$TARGETARCH" = "amd64" ] && echo "x86_64" || echo "aarch64") && \
+    ASG_VERSION=$(curl -fsSL "https://api.github.com/repos/ast-grep/ast-grep/releases/latest" | \
+        jq -r '.tag_name') && \
+    echo "Installing ast-grep ${ASG_VERSION}" && \
+    curl -fsSL "https://github.com/ast-grep/ast-grep/releases/download/${ASG_VERSION}/app-${ASG_ARCH}-unknown-linux-gnu.zip" \
+        -o /tmp/ast-grep.zip && \
+    unzip -o /tmp/ast-grep.zip sg ast-grep -d /usr/local/bin && \
+    rm /tmp/ast-grep.zip && \
+    chmod +x /usr/local/bin/sg /usr/local/bin/ast-grep
+
+# Install yq from GitHub releases
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    YQ_TAG=$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | \
+        jq -r '.tag_name') && \
+    echo "Installing yq ${YQ_TAG}" && \
+    curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_TAG}/yq_linux_${TARGETARCH_VAL}" \
+        -o /usr/local/bin/yq && \
+    chmod +x /usr/local/bin/yq
+
+# Install glab (GitLab CLI) from GitLab releases
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    GLAB_VERSION=$(curl -fsSL "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/releases?per_page=1" | \
+        jq -r '.[0].tag_name | ltrimstr("v")') && \
+    echo "Installing glab v${GLAB_VERSION}" && \
+    curl -fsSL "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/${GLAB_VERSION}/glab_${GLAB_VERSION}_linux_${TARGETARCH_VAL}.tar.gz" | \
+    tar -xz -C /usr/local/bin --strip-components=1 bin/glab && \
+    chmod +x /usr/local/bin/glab
+
+# Install kubectl from official release
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    KUBECTL_VERSION=$(curl -fsSL "https://dl.k8s.io/release/stable.txt") && \
+    echo "Installing kubectl ${KUBECTL_VERSION}" && \
+    curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH_VAL}/kubectl" \
+        -o /usr/local/bin/kubectl && \
+    chmod +x /usr/local/bin/kubectl
+
+# Install stern (multi-pod log tailing) from GitHub releases
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    STERN_TAG=$(curl -fsSL "https://api.github.com/repos/stern/stern/releases/latest" | \
+        jq -r '.tag_name') && \
+    STERN_VERSION=${STERN_TAG#v} && \
+    echo "Installing stern ${STERN_TAG}" && \
+    curl -fsSL "https://github.com/stern/stern/releases/download/${STERN_TAG}/stern_${STERN_VERSION}_linux_${TARGETARCH_VAL}.tar.gz" | \
+    tar -xz -C /usr/local/bin stern && \
+    chmod +x /usr/local/bin/stern
+
+# Install npm-based AI tools globally
+RUN npm install -g \
+    @openai/codex \
+    @google/gemini-cli && \
+    npm cache clean --force
+
+# Install Claude Code via official install script
+RUN curl -fsSL https://claude.ai/install.sh | bash && \
+    cp /root/.local/bin/claude /usr/local/bin/claude && \
+    chmod +x /usr/local/bin/claude && \
+    claude --version
+
+# Install OpenCode from GitHub releases (platform-specific binary, latest version)
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+        OPENCODE_ARCH="x64"; \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
+        OPENCODE_ARCH="arm64"; \
+    else \
+        echo "Unsupported architecture: $TARGETARCH" && exit 1; \
+    fi && \
+    OPENCODE_TAG=$(curl -fsSL "https://api.github.com/repos/anomalyco/opencode/releases/latest" | \
+        jq -r '.tag_name') && \
+    echo "Installing opencode ${OPENCODE_TAG}" && \
+    curl -fsSL "https://github.com/anomalyco/opencode/releases/download/${OPENCODE_TAG}/opencode-linux-${OPENCODE_ARCH}.tar.gz" | \
+    tar -xz -C /usr/local/bin && \
+    chmod +x /usr/local/bin/opencode
+
+# Verify installations
+RUN codex --version && \
+    claude --version && \
+    gemini --version && \
+    opencode --version && \
+    sg --version && \
+    yq --version && \
+    gh --version && \
+    glab --version && \
+    kubectl version --client && \
+    stern --version && \
+    rg --version && \
+    fd --version && \
+    make --version && \
+    jq --version && \
+    shellcheck --version
+
+# Final runtime stage
+FROM registry.access.redhat.com/ubi9/ubi
+
+# Build arguments
+ARG NODE_MAJOR=20
+
+# Environment variables
+ENV NODE_ENV=production \
+    PATH="/user/.local/bin:${PATH}"
+
+# Install minimal runtime dependencies
+# --allowerasing: UBI 9 ships curl-minimal which conflicts with curl
+RUN dnf install -y --allowerasing \
+        curl \
+        git \
+        xz \
+        make \
+        jq && \
+    dnf clean all
+
+# Install GitHub CLI via official RPM repo
+RUN curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo \
+        -o /etc/yum.repos.d/github-cli.repo && \
+    dnf install -y gh --repo gh-cli && \
+    dnf clean all
+
+# Install Node.js from official binary (supports both AMD64 and ARM64)
+ARG TARGETARCH
+RUN NODE_VERSION="20.19.1" && \
+    if [ "$TARGETARCH" = "amd64" ]; then ARCH="x64"; elif [ "$TARGETARCH" = "arm64" ]; then ARCH="arm64"; fi && \
+    curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar -xJ -C /usr/local --strip-components=1
+
+# Copy installed tools from builder stage
+COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Create aiuser with UID/GID 1000
+RUN groupadd -g 1000 aiuser && \
+    useradd -m -u 1000 -g 1000 -d /user -s /bin/bash aiuser && \
+    chown -R aiuser:aiuser /user
+
+# Set default user
+USER aiuser
+WORKDIR /user
+
+# Add labels for GitHub Container Registry
+LABEL org.opencontainers.image.source="https://github.com/chmouel/agents-image"
+LABEL org.opencontainers.image.description="UBI 9-based multi-arch image with AI coding assistants (Codex, Claude Code, Gemini CLI, OpenCode) and other developer tools"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Default command
+CMD ["/bin/bash"]
