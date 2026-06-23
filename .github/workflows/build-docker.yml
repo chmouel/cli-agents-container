@@ -77,3 +77,59 @@ jobs:
 
       - name: Image digest
         run: echo "Image (${{ matrix.variant }}) built and pushed successfully!"
+
+  update-versions:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract tool versions from image
+        run: |
+          docker pull --platform linux/amd64 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker run --rm --platform linux/amd64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest bash -c '
+            jq -n \
+              --arg node "$(node --version | tr -d v)" \
+              --arg codex "$(codex --version 2>&1 | head -1)" \
+              --arg claude "$(claude --version 2>&1 | head -1)" \
+              --arg gemini "$(gemini --version 2>&1 | head -1)" \
+              --arg opencode "$(opencode --version 2>&1 | head -1)" \
+              --arg sg "$(sg --version 2>&1 | head -1)" \
+              --arg yq "$(yq --version 2>&1 | head -1)" \
+              --arg gh "$(gh --version 2>&1 | head -1)" \
+              --arg glab "$(glab --version 2>&1 | head -1)" \
+              --arg kubectl "$(kubectl version --client 2>&1 | head -1)" \
+              --arg stern "$(stern --version 2>&1 | head -1)" \
+              --arg rg "$(rg --version 2>&1 | head -1)" \
+              --arg fd "$(fd --version 2>&1 | head -1)" \
+              --arg jq "$(jq --version 2>&1)" \
+              --arg shellcheck "$(shellcheck --version 2>&1 | grep version: | awk '"'"'{print $2}'"'"')" \
+              '"'"'{node:$node,codex:$codex,claude:$claude,gemini:$gemini,opencode:$opencode,sg:$sg,yq:$yq,gh:$gh,glab:$glab,kubectl:$kubectl,stern:$stern,rg:$rg,fd:$fd,jq:$jq,shellcheck:$shellcheck}'"'"'
+          ' > version.json
+          jq --arg ts "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+            '{updated: $ts} + .' version.json > version.json.tmp
+          mv version.json.tmp version.json
+
+      - name: Commit and push version.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.json
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: update version.json"
+            git push
+          fi
