@@ -9,6 +9,11 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 - **@google/gemini-cli** - Google Gemini CLI
 - **opencode** - OpenCode AI assistant
 
+## Current Versions
+
+<!-- versions-start -->
+<!-- versions-end -->
+
 ## Usage
 
 ### Pull from GitHub Container Registry
