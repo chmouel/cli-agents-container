@@ -16,13 +16,13 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 |------|---------|
 | node | 20.19.1 |
 | codex | codex-cli 0.142.0 |
-| claude | 2.1.186 (Claude Code) |
+| claude | 2.1.187 (Claude Code) |
 | gemini | 0.47.0 |
 | opencode | 1.17.9 |
 | sg | ast-grep 0.44.0 |
 | yq | yq (https://github.com/mikefarah/yq/) version v4.53.3 |
 | gh | gh version 2.95.0 (2026-06-17) |
-| glab | glab 1.103.0 (c724bea5) |
+| glab | glab 1.105.0 (45c9976d) |
 | kubectl | Client Version: v1.36.2 |
 | stern | version: 1.34.0 |
 | rg | ripgrep 15.1.0 |
@@ -30,7 +30,7 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | jq | jq-1.8.1 |
 | shellcheck | 0.11.0 |
 
-_Last updated: 2026-06-23T06:59:41Z_
+_Last updated: 2026-06-24T06:19:07Z_
 <!-- versions-end -->
 
 ## Usage
