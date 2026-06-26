@@ -15,10 +15,10 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | Tool | Version |
 |------|---------|
 | node | 20.19.1 |
-| codex | codex-cli 0.142.1 |
-| claude | 2.1.191 (Claude Code) |
-| gemini | 0.47.0 |
-| opencode | 1.17.10 |
+| codex | codex-cli 0.142.2 |
+| claude | 2.1.193 (Claude Code) |
+| gemini | 0.49.0 |
+| opencode | 1.17.11 |
 | sg | ast-grep 0.44.0 |
 | yq | yq (https://github.com/mikefarah/yq/) version v4.53.3 |
 | gh | gh version 2.95.0 (2026-06-17) |
@@ -30,7 +30,7 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | jq | jq-1.8.1 |
 | shellcheck | 0.11.0 |
 
-_Last updated: 2026-06-25T06:20:06Z_
+_Last updated: 2026-06-26T06:20:49Z_
 <!-- versions-end -->
 
 ## Usage
