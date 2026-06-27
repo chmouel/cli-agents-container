@@ -15,8 +15,8 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | Tool | Version |
 |------|---------|
 | node | 20.19.1 |
-| codex | codex-cli 0.142.2 |
-| claude | 2.1.193 (Claude Code) |
+| codex | codex-cli 0.142.3 |
+| claude | 2.1.195 (Claude Code) |
 | gemini | 0.49.0 |
 | opencode | 1.17.11 |
 | sg | ast-grep 0.44.0 |
@@ -30,7 +30,7 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | jq | jq-1.8.1 |
 | shellcheck | 0.11.0 |
 
-_Last updated: 2026-06-26T06:20:49Z_
+_Last updated: 2026-06-27T06:04:42Z_
 <!-- versions-end -->
 
 ## Usage
