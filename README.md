@@ -19,7 +19,7 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | claude | 2.1.201 (Claude Code) |
 | gemini | 0.49.0 |
 | opencode | 1.17.13 |
-| sg | ast-grep 0.44.0 |
+| sg | ast-grep 0.44.1 |
 | yq | yq (https://github.com/mikefarah/yq/) version v4.53.3 |
 | gh | gh version 2.95.0 (2026-06-17) |
 | glab | glab 1.106.0 (fc1869c7) |
@@ -30,7 +30,7 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | jq | jq-1.8.1 |
 | shellcheck | 0.11.0 |
 
-_Last updated: 2026-07-04T05:55:51Z_
+_Last updated: 2026-07-05T06:15:19Z_
 <!-- versions-end -->
 
 ## Usage
