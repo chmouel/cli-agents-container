@@ -21,7 +21,7 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | opencode | 1.17.15 |
 | copilot | GitHub Copilot CLI 1.0.69. |
 | sg | ast-grep 0.44.1 |
-| yq | yq (https://github.com/mikefarah/yq/) version v4.53.3 |
+| yq | yq (<https://github.com/mikefarah/yq/>) version v4.53.3 |
 | gh | gh version 2.95.0 (2026-06-17) |
 | glab | glab 1.107.0 (85b59ceb) |
 | kubectl | Client Version: v1.36.2 |
@@ -109,6 +109,7 @@ The Dockerfile uses multi-stage builds to minimize the final image size while ke
 ## Base Image
 
 Built on **Ubuntu 24.04 LTS** for:
+
 - Official multi-architecture support (AMD64 + ARM64)
 - Long-term stability and security updates
 - Reliable Node.js packages via NodeSource
@@ -120,6 +121,7 @@ The container runs as a non-root user for better security:
 - **Username**: `aiuser`
 - **UID/GID**: 1000:1000
 - **Home directory**: `/user`
+
 ### Volume Mounting Example
 
 ```bash
@@ -129,4 +131,4 @@ docker run -it -v $(pwd):/workspace ghcr.io/chmouel/agents-image:latest
 
 ## License
 
-MIT
+[Apache License 2.0](./LICENSE)
