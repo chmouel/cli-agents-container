@@ -112,6 +112,7 @@ jobs:
               --arg claude "$(claude --version 2>&1 | head -1)" \
               --arg gemini "$(gemini --version 2>&1 | head -1)" \
               --arg opencode "$(opencode --version 2>&1 | head -1)" \
+              --arg copilot "$(gh copilot --version 2>&1 | head -1)" \
               --arg sg "$(sg --version 2>&1 | head -1)" \
               --arg yq "$(yq --version 2>&1 | head -1)" \
               --arg gh "$(gh --version 2>&1 | head -1)" \
@@ -122,7 +123,7 @@ jobs:
               --arg fd "$(fd --version 2>&1 | head -1)" \
               --arg jq "$(jq --version 2>&1)" \
               --arg shellcheck "$(shellcheck --version 2>&1 | grep version: | awk '"'"'{print $2}'"'"')" \
-              '"'"'{node:$node,codex:$codex,claude:$claude,gemini:$gemini,opencode:$opencode,sg:$sg,yq:$yq,gh:$gh,glab:$glab,kubectl:$kubectl,stern:$stern,rg:$rg,fd:$fd,jq:$jq,shellcheck:$shellcheck}'"'"'
+              '"'"'{node:$node,codex:$codex,claude:$claude,gemini:$gemini,opencode:$opencode,copilot:$copilot,sg:$sg,yq:$yq,gh:$gh,glab:$glab,kubectl:$kubectl,stern:$stern,rg:$rg,fd:$fd,jq:$jq,shellcheck:$shellcheck}'"'"'
           ' > version.json
           jq --arg ts "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
             '{updated: $ts} + .' version.json > version.json.tmp

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Multi-stage Dockerfile for AI Tools on Ubuntu (rolling)
-# Packages: @openai/codex, @anthropic-ai/claude-code, @google/gemini-cli, opencode
+# Packages: @openai/codex, @anthropic-ai/claude-code, @google/gemini-cli, opencode, gh-copilot
 # Platform: linux/amd64, linux/arm64
 
 FROM ubuntu:rolling AS builder
@@ -130,11 +130,22 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     tar -xz -C /usr/local/bin && \
     chmod +x /usr/local/bin/opencode
 
+# Install GitHub Copilot CLI as gh extension
+RUN COPILOT_ARCH=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    COPILOT_TAG=$(curl -fsSL "https://api.github.com/repos/github/gh-copilot/releases/latest" | \
+        jq -r '.tag_name') && \
+    echo "Installing gh-copilot ${COPILOT_TAG}" && \
+    mkdir -p /usr/local/share/gh/extensions/gh-copilot && \
+    curl -fsSL "https://github.com/github/gh-copilot/releases/download/${COPILOT_TAG}/linux-${COPILOT_ARCH}" \
+        -o /usr/local/share/gh/extensions/gh-copilot/gh-copilot && \
+    chmod +x /usr/local/share/gh/extensions/gh-copilot/gh-copilot
+
 # Verify installations
 RUN codex --version && \
     claude --version && \
     gemini --version && \
     opencode --version && \
+    GH_DATA_DIR=/usr/local/share/gh gh copilot --version && \
     sg --version && \
     yq --version && \
     gh --version && \
@@ -156,7 +167,8 @@ ARG NODE_MAJOR=20
 # Environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
     NODE_ENV=production \
-    PATH="/user/.local/bin:${PATH}"
+    PATH="/user/.local/bin:${PATH}" \
+    GH_DATA_DIR=/usr/local/share/gh
 
 # Install minimal runtime dependencies
 RUN apt-get update && \
@@ -198,6 +210,7 @@ RUN NODE_VERSION="20.19.1" && \
 # Copy installed tools from builder stage
 COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
 COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /usr/local/share/gh /usr/local/share/gh
 
 # Remove ubuntu user if it exists from base image, then create aiuser with UID/GID 1000
 RUN (userdel -r ubuntu 2>/dev/null || true) && \
