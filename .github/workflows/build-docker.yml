@@ -112,7 +112,7 @@ jobs:
               --arg claude "$(claude --version 2>&1 | head -1)" \
               --arg gemini "$(gemini --version 2>&1 | head -1)" \
               --arg opencode "$(opencode --version 2>&1 | head -1)" \
-              --arg copilot "$(gh copilot --version 2>&1 | head -1)" \
+              --arg copilot "$(copilot --version 2>&1 | head -1)" \
               --arg sg "$(sg --version 2>&1 | head -1)" \
               --arg yq "$(yq --version 2>&1 | head -1)" \
               --arg gh "$(gh --version 2>&1 | head -1)" \
