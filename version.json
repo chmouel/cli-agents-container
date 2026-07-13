@@ -1,7 +1,7 @@
 {
-  "updated": "2026-07-12T05:41:18Z",
+  "updated": "2026-07-13T05:49:13Z",
   "node": "20.19.1",
-  "codex": "codex-cli 0.144.1",
+  "codex": "codex-cli 0.144.2",
   "claude": "2.1.207 (Claude Code)",
   "gemini": "0.50.0",
   "opencode": "1.17.18",
