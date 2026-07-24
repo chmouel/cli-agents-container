@@ -150,11 +150,22 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     tar -xz -C /usr/local/bin && \
     chmod +x /usr/local/bin/opencode
 
+# Install paco (Paco AI code reviewer CLI) from GitHub releases
+RUN TARGETARCH_VAL=$([ "$TARGETARCH" = "amd64" ] && echo "amd64" || echo "arm64") && \
+    PACO_TAG=$(curl -fsSL "https://api.github.com/repos/pipelines-as-code/paco-cli/releases/latest" | \
+        jq -r '.tag_name') && \
+    PACO_VERSION=${PACO_TAG#v} && \
+    echo "Installing paco ${PACO_TAG}" && \
+    curl -fsSL "https://github.com/pipelines-as-code/paco-cli/releases/download/${PACO_TAG}/paco_${PACO_VERSION}_linux_${TARGETARCH_VAL}.tar.gz" | \
+    tar -xz -C /usr/local/bin paco && \
+    chmod +x /usr/local/bin/paco
+
 # Verify installations
 RUN codex --version && \
     claude --version && \
     gemini --version && \
     opencode --version && \
+    paco version && \
     copilot --version && \
     sg --version && \
     yq --version && \
