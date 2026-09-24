@@ -16,22 +16,22 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 |------|---------|
 | node | 20.19.1 |
 | codex | codex-cli 0.156.1 |
-| claude | 2.1.280 (Claude Code) |
-| gemini | 0.60.0 |
+| claude | 2.1.281 (Claude Code) |
+| gemini | 0.61.0 |
 | opencode | 1.18.32 |
 | copilot | GitHub Copilot CLI 1.0.88. |
 | sg | ======================================================================== |
 | yq | yq (https://github.com/mikefarah/yq/) version v4.53.6 |
 | gh | gh version 2.101.0 (2026-09-15) |
 | glab | glab 1.119.0 (f5016eda2) |
-| kubectl | Client Version: v1.37.0 |
+| kubectl | Client Version: v1.37.1 |
 | stern | version: 1.34.0 |
 | rg | ripgrep 15.1.0 |
 | fd | fdfind 10.3.0 |
 | jq | jq-1.8.1 |
 | shellcheck | 0.11.0 |
 
-_Last updated: 2026-09-23T07:43:47Z_
+_Last updated: 2026-09-24T07:35:34Z_
 <!-- versions-end -->
 
 ## Usage
