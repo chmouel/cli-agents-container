@@ -15,10 +15,10 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | Tool | Version |
 |------|---------|
 | node | 20.19.1 |
-| codex | codex-cli 0.162.1 |
-| claude | 2.1.300 (Claude Code) |
+| codex | codex-cli 0.163.0 |
+| claude | 2.1.301 (Claude Code) |
 | gemini | 0.64.0 |
-| opencode | 1.19.0 |
+| opencode | 1.19.2 |
 | copilot | GitHub Copilot CLI 1.0.98. |
 | sg | ======================================================================== |
 | yq | yq (https://github.com/mikefarah/yq/) version v4.54.1 |
@@ -31,7 +31,7 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | jq | jq-1.8.1 |
 | shellcheck | 0.11.0 |
 
-_Last updated: 2026-10-15T07:20:10Z_
+_Last updated: 2026-10-16T07:01:57Z_
 <!-- versions-end -->
 
 ## Usage
