@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-28T08:15:10Z",
+  "updated": "2026-10-29T08:34:22Z",
   "node": "20.19.1",
   "codex": "codex-cli 0.165.0",
   "claude": "2.1.312 (Claude Code)",
@@ -8,8 +8,8 @@
   "copilot": "GitHub Copilot CLI 1.0.105.",
   "sg": "========================================================================",
   "yq": "yq (https://github.com/mikefarah/yq/) version v4.54.1",
-  "gh": "gh version 2.103.2 (2026-10-23)",
-  "glab": "glab 1.125.0 (685c1cbd7)",
+  "gh": "gh version 2.103.3 (2026-10-26)",
+  "glab": "glab 1.126.0 (4dd0d32d1)",
   "kubectl": "Client Version: v1.37.2",
   "stern": "version: 1.35.0",
   "rg": "ripgrep 15.2.0",
