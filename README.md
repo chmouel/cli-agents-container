@@ -21,7 +21,7 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | opencode | 1.19.5 |
 | copilot | GitHub Copilot CLI 1.0.107. |
 | sg | ======================================================================== |
-| yq | yq (https://github.com/mikefarah/yq/) version v4.54.2 |
+| yq | yq (https://github.com/mikefarah/yq/) version v4.54.3 |
 | gh | gh version 2.103.3 (2026-10-26) |
 | glab | glab 1.128.0 (519ea19f7) |
 | kubectl | Client Version: v1.37.2 |
@@ -31,7 +31,7 @@ Automated daily builds of an Ubuntu-based Docker image with popular AI coding as
 | jq | jq-1.8.2 |
 | shellcheck | 0.11.0 |
 
-_Last updated: 2026-11-07T08:43:17Z_
+_Last updated: 2026-11-09T09:38:24Z_
 <!-- versions-end -->
 
 ## Usage
